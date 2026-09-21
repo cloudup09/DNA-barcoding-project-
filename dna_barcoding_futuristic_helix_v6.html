@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DNA Barcoding Lab</title>
+<style>
+:root{--bg:#071510;--panel:rgba(13,34,26,.88);--panel2:#102d22;--text:#d6e6de;--muted:#829d91;--accent:#58e39a;--accent2:#36bdf4;--line:rgba(141,235,190,.18);--danger:#ff8d8d}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at 15% 10%,rgba(54,189,244,.12),transparent 28%),radial-gradient(circle at 85% 15%,rgba(88,227,154,.13),transparent 30%),linear-gradient(135deg,#06110d,#0a1e16 50%,#06110d);min-height:100vh;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.12;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:38px 38px;mask-image:linear-gradient(to bottom,black,transparent 80%)}
+.container{width:min(1120px,92%);margin:auto;padding:32px 0 55px}.hero{position:relative;padding:42px 34px;border:1px solid var(--line);border-radius:28px;background:linear-gradient(135deg,rgba(16,45,34,.95),rgba(8,25,19,.84));box-shadow:0 25px 70px rgba(0,0,0,.28);overflow:hidden}.hero:after{content:"DNA";position:absolute;right:-12px;bottom:-45px;font-size:150px;font-weight:900;letter-spacing:-10px;color:rgba(88,227,154,.055)}.eyebrow{display:inline-flex;gap:8px;align-items:center;color:var(--accent);font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 15px var(--accent)}h1{font-size:clamp(34px,6vw,64px);line-height:.98;margin:15px 0 12px;letter-spacing:-2px}.hero p{max-width:760px;color:var(--muted);font-size:17px;line-height:1.65;margin:0}.badges{display:flex;gap:9px;flex-wrap:wrap;margin-top:22px}.badge{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.035);font-size:12px;color:#ccebdd}
+.card{margin-top:18px;padding:25px;border:1px solid var(--line);border-radius:22px;background:var(--panel);box-shadow:0 14px 45px rgba(0,0,0,.18);backdrop-filter:blur(12px)}.section-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;margin-bottom:20px}.section-head h2{margin:0;font-size:21px}.section-head p{margin:5px 0 0;color:var(--muted);font-size:13px}.step{display:inline-flex;width:30px;height:30px;border-radius:10px;align-items:center;justify-content:center;background:rgba(88,227,154,.12);color:var(--accent);font-weight:900;margin-right:9px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field label{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:750;margin:0 0 8px;color:#d8f5e7}.hint{font-size:11px;color:var(--muted);font-weight:500}input,select,button{font:inherit}input,select{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:#091b14;color:var(--text);outline:none;transition:.2s}input:focus,select:focus{border-color:rgba(88,227,154,.7);box-shadow:0 0 0 4px rgba(88,227,154,.08)}textarea{width:100%;min-height:115px;resize:vertical;padding:14px;border-radius:12px;border:1px solid var(--line);background:#091b14;color:#eafff3;font:13px ui-monospace,SFMono-Regular,Consolas,monospace;outline:none}textarea:focus{border-color:rgba(88,227,154,.7);box-shadow:0 0 0 4px rgba(88,227,154,.08)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}button{border:0;border-radius:12px;padding:12px 17px;cursor:pointer;font-weight:800;transition:transform .15s,filter .15s;background:linear-gradient(135deg,var(--accent),#32c97e);color:#052114}button:hover{transform:translateY(-1px);filter:brightness(1.07)}button.secondary{background:#17372a;color:#dff9eb;border:1px solid var(--line)}button.blue{background:linear-gradient(135deg,#43c8f6,#3288e8);color:#041725}.tiny{padding:8px 11px;font-size:12px}
+.samples{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.sample{background:rgba(255,255,255,.035);border:1px solid var(--line);color:#cde8da;padding:8px 11px;border-radius:9px;cursor:pointer;font-size:12px;font-weight:700}.sample:hover{border-color:rgba(88,227,154,.55)}
+.status{margin-top:16px;padding:14px 16px;border-radius:13px;background:rgba(88,227,154,.08);border:1px solid rgba(88,227,154,.15);color:#dff8ea;line-height:1.55}.status.error{background:rgba(255,90,90,.08);border-color:rgba(255,90,90,.18);color:#ffd1d1}.status strong{color:white}
+.canvas-wrap{position:relative;overflow:auto;border:1px solid var(--line);border-radius:16px;background:#07130f}.canvas-wrap canvas{display:block;width:100%;min-width:700px;height:330px}.canvas-label{position:absolute;top:11px;right:12px;padding:6px 9px;border-radius:8px;background:rgba(0,0,0,.3);font-size:10px;color:#a9c7b9;letter-spacing:.5px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.stat{padding:15px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid var(--line)}.stat .label{font-size:11px;color:var(--muted)}.stat strong{display:block;font-size:23px;margin-top:4px}.stat small{color:var(--muted);font-size:10px}.legend{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.legend span{font-size:12px;padding:8px 10px;border-radius:9px;border:1px solid var(--line);background:#10251c}.legend b{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}.la{background:#ff7777}.lt{background:#4ea9ff}.lc{background:#61d889}.lg{background:#bb83ff}
+.binary{margin-top:16px}.binary pre{white-space:pre-wrap;word-break:break-all;max-height:150px;overflow:auto;margin:8px 0 0;padding:13px;border-radius:12px;background:#050e0b;border:1px solid var(--line);color:#bdebd2;font:11px ui-monospace,Consolas,monospace}.hidden{display:none}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.info{padding:18px;border-radius:15px;background:rgba(255,255,255,.025);border:1px solid var(--line)}.info .num{color:var(--accent);font-weight:900;font-size:12px}.info h3{font-size:15px;margin:8px 0}.info p{color:var(--muted);font-size:12px;line-height:1.6;margin:0}.note{font-size:11px;color:#87aa99;margin-top:14px;line-height:1.6}.footer{text-align:center;color:#6f9182;font-size:11px;margin-top:22px}
+@media(max-width:780px){.grid,.info-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.hero{padding:30px 22px}.card{padding:19px}.section-head{display:block}.canvas-wrap canvas{height:290px}}@media(max-width:430px){.stats{grid-template-columns:1fr}.actions button{flex:1 1 45%}}
+
+/* ===== Futuristic DNA hologram styling ===== */
+.dna-hologram-card{
+  background:
+    radial-gradient(circle at 50% 45%,rgba(54,189,244,.10),transparent 38%),
+    linear-gradient(135deg,rgba(5,27,31,.96),rgba(4,17,24,.94));
+}
+.dna-hologram{
+  position:relative;
+  height:500px;
+  overflow:hidden;
+  border-radius:18px;
+  border:1px solid rgba(54,189,244,.42);
+  background:
+    radial-gradient(circle at 50% 48%,rgba(0,210,255,.10),transparent 25%),
+    radial-gradient(circle at 50% 70%,rgba(30,255,170,.08),transparent 30%),
+    #020a10;
+  box-shadow:
+    inset 0 0 60px rgba(0,174,255,.08),
+    0 0 35px rgba(0,174,255,.10);
+  cursor:grab;
+}
+.dna-hologram:active{cursor:grabbing}
+.dna-hologram canvas{
+  position:absolute;
+  inset:0;
+  width:100%!important;
+  height:100%!important;
+  display:block;
+}
+.holo-grid{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.22;
+  background-image:
+    linear-gradient(rgba(54,189,244,.10) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(54,189,244,.10) 1px,transparent 1px);
+  background-size:38px 38px;
+  mask-image:radial-gradient(circle at center,black 15%,transparent 78%);
+}
+.holo-title{
+  position:absolute;
+  top:16px;
+  left:16px;
+  z-index:5;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:9px 13px;
+  border:1px solid rgba(54,189,244,.30);
+  border-radius:12px;
+  background:rgba(2,13,20,.64);
+  backdrop-filter:blur(8px);
+  box-shadow:0 0 18px rgba(0,174,255,.08);
+}
+.holo-title .holo-icon{
+  width:32px;height:32px;
+  display:grid;place-items:center;
+  border-radius:50%;
+  background:rgba(54,189,244,.13);
+  box-shadow:0 0 16px rgba(54,189,244,.18);
+}
+.holo-title strong{
+  display:block;
+  color:#e5fbff;
+  font-size:14px;
+}
+.holo-title small{
+  display:block;
+  color:#79bfd0;
+  margin-top:3px;
+  font-size:10px;
+  letter-spacing:.3px;
+}
+.holo-controls{
+  position:absolute;
+  top:16px;
+  right:16px;
+  z-index:5;
+  min-width:165px;
+  padding:10px 12px;
+  border:1px solid rgba(54,189,244,.28);
+  border-radius:12px;
+  background:rgba(2,13,20,.60);
+  backdrop-filter:blur(8px);
+  color:#b9e7ef;
+  font-size:10px;
+  line-height:2.15;
+}
+.holo-controls div::first-letter{color:#58e39a}
+.holo-bottom{
+  position:absolute;
+  left:16px;
+  right:16px;
+  bottom:13px;
+  z-index:5;
+  display:flex;
+  justify-content:space-between;
+  color:#4f92a3;
+  font-size:9px;
+  letter-spacing:1.2px;
+  pointer-events:none;
+}
+@media(max-width:600px){
+  .dna-hologram{height:410px}
+  .holo-controls{display:none}
+  .holo-title{top:10px;left:10px}
+}
+
+
+.base-legend{
+  position:absolute;
+  left:16px;
+  bottom:38px;
+  z-index:6;
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  max-width:360px;
+  padding:8px 10px;
+  border:1px solid rgba(54,189,244,.25);
+  border-radius:10px;
+  background:rgba(2,13,20,.58);
+  backdrop-filter:blur(8px);
+  color:#9bcbd5;
+  font-size:10px;
+}
+.base-legend span{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  white-space:nowrap;
+}
+.base-legend b{
+  display:inline-grid;
+  place-items:center;
+  width:19px;
+  height:19px;
+  border-radius:5px;
+  font-size:10px;
+  color:#031017;
+  box-shadow:0 0 10px currentColor;
+}
+.base-a{background:#25d9ff;color:#25d9ff!important}
+.base-t{background:#54ff9b;color:#54ff9b!important}
+.base-c{background:#9b6cff;color:#9b6cff!important}
+.base-g{background:#ffd45a;color:#ffd45a!important}
+@media(max-width:600px){
+  .base-legend{left:10px;bottom:36px;max-width:260px}
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+<header class="hero">
+  <div class="eyebrow"><span class="dot"></span> DNA BARCODE ANALYSIS</div>
+  <h1>DNA Barcoding<br>Laboratory</h1>
+  <p>Convert DNA base sequences into a distinctive digital barcode pattern, inspect sequence statistics, and compare an input sequence against a small reference database.</p>
+  
+</header>
+
+<section class="card">
+  <div class="section-head"><div><h2><span class="step">01</span>Input &amp; Encode</h2><p>Select a reference species or enter your own DNA sequence.</p></div></div>
+  <div class="grid">
+    <div class="field"><label for="species">Reference species <span class="hint">optional</span></label><input id="species" list="speciesList" placeholder="human, lion, butterfly, panda"><datalist id="speciesList"><option value="human"><option value="lion"><option value="butterfly"><option value="panda"></datalist></div>
+    <div class="field"><label for="mapping">Binary base mapping</label><select id="mapping"><option value="ATCG">A=00 · T=01 · C=10 · G=11</option><option value="ATGC">A=00 · T=01 · G=10 · C=11</option><option value="ACGT">A=00 · C=01 · G=10 · T=11</option></select></div>
+  </div>
+  <div class="field" style="margin-top:16px"><label for="dna">DNA sequence <span class="hint" id="baseCount">0 bases</span></label><textarea id="dna" placeholder="Enter A, T, C and G — spaces and line breaks are automatically ignored."></textarea></div>
+  <div class="samples"><span class="hint" style="align-self:center;margin-right:3px">Quick load:</span><button class="sample" data-species="human">Human</button><button class="sample" data-species="lion">Lion</button><button class="sample" data-species="butterfly">Butterfly</button><button class="sample" data-species="panda">Panda</button></div>
+  <div class="actions"><button id="generate">Generate barcode</button><button id="verify" class="blue">Verify against database</button><button id="random" class="secondary">Random sequence</button><button id="clear" class="secondary">Clear</button></div>
+  <div id="status" class="status">Ready. Load a species or enter a DNA sequence to begin.</div>
+</section>
+
+<section class="card">
+  <div class="section-head"><div><h2><span class="step">02</span>Barcode Visualization</h2><p>Each nucleotide becomes a colored block, producing a compact digital pattern.</p></div><button id="download" class="tiny secondary">Export PNG</button></div>
+  <div class="canvas-wrap"><span class="canvas-label">DIGITAL DNA BARCODE</span><canvas id="barcodeCanvas" width="1100" height="330"></canvas></div>
+  <div class="legend"><span><b class="la"></b>A · Adenine</span><span><b class="lt"></b>T · Thymine</span><span><b class="lc"></b>C · Cytosine</span><span><b class="lg"></b>G · Guanine</span></div>
+  <div class="stats"><div class="stat"><span class="label">SEQUENCE LENGTH</span><strong id="length">0</strong><small>bases</small></div><div class="stat"><span class="label">BINARY LENGTH</span><strong id="binaryLength">0</strong><small>bits</small></div><div class="stat"><span class="label">GC CONTENT</span><strong id="gcContent">0%</strong><small>G + C percentage</small></div><div class="stat"><span class="label">ENTROPY</span><strong id="entropy">0.00</strong><small>bits/base</small></div></div>
+  <div class="binary"><button id="toggleBinary" class="tiny secondary">Show binary encoding</button><pre id="binaryOutput" class="hidden"></pre></div>
+</section>
+
+<section class="card dna-hologram-card">
+  <div class="section-head">
+    <div>
+      <h2><span class="step">03</span>3D DNA Hologram</h2>
+      <p>Explore a glowing, interactive DNA double helix.</p>
+    </div>
+  </div>
+
+  <div id="dnaHologram" class="dna-hologram">
+    <div class="holo-grid"></div>
+    <div class="holo-title">
+      <span class="holo-icon">🧬</span>
+      <div>
+        <strong>3D DNA Hologram</strong>
+        <small>Rotate · Zoom · Explore</small>
+      </div>
+    </div>
+
+
+    <div class="base-legend">
+      <span><b class="base-a">A</b> Adenine</span>
+      <span><b class="base-t">T</b> Thymine</span>
+      <span><b class="base-c">C</b> Cytosine</span>
+      <span><b class="base-g">G</b> Guanine</span>
+    </div>
+    <div class="holo-controls">
+      <div>◉ &nbsp; Drag to rotate</div>
+      <div>◉ &nbsp; Scroll to zoom</div>
+      <div>◉ &nbsp; Double click to reset</div>
+    </div>
+
+    <div class="holo-bottom">
+      <span>DNA MOLECULAR VISUALIZATION</span>
+      <span>LIVE 3D</span>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-head"><div><h2><span class="step">04</span>How the Analysis Works</h2><p>A simple process showing how the DNA sequence is analyzed and represented.</p></div></div>
+  <div class="info-grid">
+    <div class="info"><span class="num">STEP 01</span><h3>Validate</h3><p>The program cleans the input and checks that every character belongs to the four DNA bases: A, T, C or G.</p></div>
+    <div class="info"><span class="num">STEP 02</span><h3>Encode</h3><p>Each base is assigned a 2-bit binary value using the selected mapping, giving every sequence a digital representation.</p></div>
+    <div class="info"><span class="num">STEP 03</span><h3>Visualize</h3><p>The bases are rendered as colored blocks. Similar sequences tend to produce similar visual patterns.</p></div>
+    <div class="info"><span class="num">STEP 04</span><h3>Compare</h3><p>Verification uses a simple Hamming-distance comparison against the built-in reference sequences.</p></div>
+    <div class="info"><span class="num">STEP 05</span><h3>Measure</h3><p>The simulator calculates length, binary size, GC content and sequence entropy for quick analysis.</p></div>
+    <div class="info"><span class="num">STEP 06</span><h3>Advanced Genetic Insights</h3><p>Explore deeper sequence patterns, genetic relationships, variation signals and biodiversity insights from the analyzed DNA.</p></div>
+  </div>
+</section>
+<div class="footer">DNA Barcoding Laboratory · Interactive Genetic Analysis</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+const database = {
+
+    "human":
+        "ATGCGTACTGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTACCATGCGTATGCGTAC",
+
+    "lion":
+        "GCCATGTACCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTAATGTACCGCCATGTA",
+
+    "butterfly":
+        "CGTACGGAGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGAAGGCATGCGTACGGA",
+
+    "panda":
+        "TTAACGCGTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCGGCGCAATTTAACGCG"
+
+};
+
+const colors={A:"#ff7777",T:"#4ea9ff",C:"#61d889",G:"#bb83ff"};
+const $=id=>document.getElementById(id);
+function cleanSequence(){return $("dna").value.toUpperCase().replace(/\s/g,"");}
+function valid(seq){return seq.length>0&&/^[ATCG]+$/.test(seq)}
+function getMapping(){const order=$("mapping").value,map={};order.split("").forEach((b,i)=>map[b]=i.toString(2).padStart(2,"0"));return map}
+function binary(seq){const map=getMapping();return [...seq].map(b=>map[b]).join("")}
+function gcContent(seq){return seq?([...seq].filter(b=>b==="G"||b==="C").length/seq.length)*100:0}
+function entropy(seq){if(!seq)return 0;let e=0;for(const b of "ATCG"){const p=[...seq].filter(x=>x===b).length/seq.length;if(p)e-=p*Math.log2(p)}return e}
+function setStatus(html,error=false){$("status").className="status"+(error?" error":"");$("status").innerHTML=html}
+function drawBarcode(seq){const c=$("barcodeCanvas"),ctx=c.getContext("2d"),W=c.width,H=c.height;ctx.clearRect(0,0,W,H);ctx.fillStyle="#07130f";ctx.fillRect(0,0,W,H);const cols=Math.min(100,Math.max(40,Math.ceil(Math.sqrt(seq.length*2))));const rows=Math.ceil(seq.length/cols);const margin=28,top=55,gap=2;const bw=(W-2*margin-(cols-1)*gap)/cols;const bh=Math.max(7,Math.min(24,(H-top-30-(rows-1)*gap)/rows));ctx.fillStyle="#d8f5e7";ctx.font="700 15px Arial";ctx.fillText("Digital DNA Barcode",margin,27);ctx.fillStyle="#8eb6a4";ctx.font="11px Arial";ctx.fillText(seq.length+" bases  •  "+cols+" columns",margin,43);if(!seq){ctx.fillStyle="#4d7161";ctx.font="14px Arial";ctx.fillText("Your barcode will appear here",margin,90);return}for(let i=0;i<seq.length;i++){const x=margin+(i%cols)*(bw+gap),y=top+Math.floor(i/cols)*(bh+gap);ctx.fillStyle=colors[seq[i]];ctx.fillRect(x,y,Math.max(2,bw),bh)}ctx.fillStyle="#527565";ctx.font="10px Arial";ctx.fillText("5'",margin,H-10);ctx.fillText("3'",W-margin-10,H-10)}
+function update(seq){$("length").textContent=seq.length;$("binaryLength").textContent=seq.length*2;$("gcContent").textContent=gcContent(seq).toFixed(1)+"%";$("entropy").textContent=entropy(seq).toFixed(2);$("baseCount").textContent=seq.length+" base"+(seq.length===1?"":"s");drawBarcode(seq);$("binaryOutput").textContent=binary(seq)}
+function loadSpecies(name){name=name.trim().toLowerCase();if(!database[name]){setStatus("<strong>Species not found.</strong> Try human, lion, butterfly or panda.",true);return}$("species").value=name;$("dna").value=database[name];update(database[name]);setStatus("<strong>"+name.toUpperCase()+" loaded.</strong> Barcode generated from the built-in demonstration reference sequence.")}
+function generate(){const seq=cleanSequence(),species=$("species").value.trim().toLowerCase();if(species&&database[species]&&!seq){loadSpecies(species);return}if(!valid(seq)){setStatus("<strong>Invalid DNA sequence.</strong> Use only A, T, C and G.",true);return}update(seq);setStatus("<strong>Barcode generated.</strong> "+seq.length+" bases converted into a visual pattern.")}
+function distance(a,b){let d=Math.abs(a.length-b.length);for(let i=0;i<Math.min(a.length,b.length);i++)if(a[i]!==b[i])d++;return d}
+function verify(){const seq=cleanSequence();if(!valid(seq)){setStatus("<strong>Verification unavailable.</strong> Enter a valid DNA sequence first.",true);return}let best="",bd=Infinity;for(const s in database){const d=distance(seq,database[s]);if(d<bd){bd=d;best=s}}const similarity=Math.max(0,(1-bd/Math.max(seq.length,database[best].length))*100);update(seq);if(seq===database[best])setStatus("✓ <strong>Exact match: "+best.toUpperCase()+".</strong> The input and reference sequences are identical.");else setStatus("<strong>Closest reference: "+best.toUpperCase()+".</strong> Approximate sequence similarity: "+similarity.toFixed(1)+"% ("+bd+" difference"+(bd===1?"":"s")+").")}
+function randomSeq(){const bases="ATCG";let s="";const n=24+Math.floor(Math.random()*25);for(let i=0;i<n;i++)s+=bases[Math.floor(Math.random()*4)];$("species").value="";$("dna").value=s;update(s);setStatus("<strong>Random sequence created.</strong> You can now generate or verify it.")}
+$("generate").onclick=generate;$("verify").onclick=verify;$("random").onclick=randomSeq;$("clear").onclick=()=>{$("species").value="";$("dna").value="";update("");setStatus("Ready. Load a species or enter a DNA sequence to begin.")};$("mapping").onchange=()=>{const s=cleanSequence();if(valid(s)){update(s);setStatus("<strong>Mapping updated.</strong> The barcode and binary representation have been recalculated.")}};$("dna").addEventListener("input",()=>{const raw=$("dna").value;if(raw.trim()===""){update("");return}const s=cleanSequence();if(valid(s)){update(s);setStatus("<strong>Live preview.</strong> Sequence is valid.")}else{$("baseCount").textContent=s.length+" bases"}});document.querySelectorAll(".sample").forEach(b=>b.onclick=()=>loadSpecies(b.dataset.species));$("toggleBinary").onclick=()=>{const p=$("binaryOutput");p.classList.toggle("hidden");$("toggleBinary").textContent=p.classList.contains("hidden")?"Show binary encoding":"Hide binary encoding"};$("download").onclick=()=>{const link=document.createElement("a");link.download="dna-barcode.png";link.href=$("barcodeCanvas").toDataURL("image/png");link.click()};update("");
+
+/* 3D DNA hologram — isolated addition; existing barcode logic remains unchanged. */
+(function initDNAHologram(){
+  const mount = document.getElementById("dnaHologram");
+  if(!mount || typeof THREE === "undefined") return;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+  camera.position.set(0, 0, 9.7);
+
+  const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setClearColor(0x000000, 0);
+  mount.appendChild(renderer.domElement);
+
+  const dna = new THREE.Group();
+  scene.add(dna);
+
+  // Neon materials inspired by the supplied reference image.
+  const cyan = new THREE.MeshBasicMaterial({
+    color:0x25d9ff, transparent:true, opacity:.92
+  });
+  const blue = new THREE.MeshBasicMaterial({
+    color:0x367dff, transparent:true, opacity:.80
+  });
+  const green = new THREE.MeshBasicMaterial({
+    color:0x54ff9b, transparent:true, opacity:.90
+  });
+  const purple = new THREE.MeshBasicMaterial({
+    color:0x9b6cff, transparent:true, opacity:.65
+  });
+  const rungMaterial = new THREE.MeshBasicMaterial({
+    color:0x9beeff, transparent:true, opacity:.70
+  });
+
+  const height = 6.0;
+  const radius = 1.48;
+  const turns = 2.25;
+  const steps = 220;
+  const aPoints = [], bPoints = [];
+
+  for(let i=0;i<=steps;i++){
+    const t=i/steps;
+    const y=(t-.5)*height;
+    const angle=t*Math.PI*2*turns;
+    aPoints.push(new THREE.Vector3(Math.cos(angle)*radius,y,Math.sin(angle)*radius));
+    bPoints.push(new THREE.Vector3(Math.cos(angle+Math.PI)*radius,y,Math.sin(angle+Math.PI)*radius));
+  }
+
+  const curveA=new THREE.CatmullRomCurve3(aPoints);
+  const curveB=new THREE.CatmullRomCurve3(bPoints);
+
+  dna.add(new THREE.Mesh(
+    new THREE.TubeGeometry(curveA,220,.068,10,false), cyan
+  ));
+  dna.add(new THREE.Mesh(
+    new THREE.TubeGeometry(curveB,220,.068,10,false), green
+  ));
+
+  // Bright glowing cores inside the two strands.
+  const coreA = new THREE.Mesh(
+    new THREE.TubeGeometry(curveA,220,.018,8,false),
+    new THREE.MeshBasicMaterial({color:0xd8fbff,transparent:true,opacity:.9})
+  );
+  const coreB = new THREE.Mesh(
+    new THREE.TubeGeometry(curveB,220,.018,8,false),
+    new THREE.MeshBasicMaterial({color:0xe5fff1,transparent:true,opacity:.85})
+  );
+  dna.add(coreA,coreB);
+
+  // Base pairs with alternating blue/purple highlights.
+  const pairCount=31;
+  for(let i=0;i<pairCount;i++){
+    const t=i/(pairCount-1);
+    const y=(t-.5)*height;
+    const angle=t*Math.PI*2*turns;
+
+    const p1=new THREE.Vector3(Math.cos(angle)*radius,y,Math.sin(angle)*radius);
+    const p2=new THREE.Vector3(Math.cos(angle+Math.PI)*radius,y,Math.sin(angle+Math.PI)*radius);
+    const dir=p2.clone().sub(p1);
+    const mid=p1.clone().add(p2).multiplyScalar(.5);
+
+    const basePair = i % 2 === 0 ? "A–T" : "C–G";
+    const rodMaterial = i % 2 === 0
+      ? new THREE.MeshBasicMaterial({color:0x25d9ff,transparent:true,opacity:.78})
+      : new THREE.MeshBasicMaterial({color:0x9b6cff,transparent:true,opacity:.78});
+    const rod=new THREE.Mesh(
+      new THREE.CylinderGeometry(.027,.027,dir.length(),8),
+      rodMaterial
+    );
+    rod.userData.basePair = basePair;
+    rod.position.copy(mid);
+    rod.quaternion.setFromUnitVectors(
+      new THREE.Vector3(0,1,0),dir.clone().normalize()
+    );
+    dna.add(rod);
+
+    const s1=new THREE.Mesh(new THREE.SphereGeometry(.075,12,12),cyan);
+    const s2=new THREE.Mesh(new THREE.SphereGeometry(.075,12,12),green);
+    s1.position.copy(p1);
+    s2.position.copy(p2);
+    dna.add(s1,s2);
+  }
+
+  // Floating A, T, C and G markers around the helix.
+  const baseChars = ["A","T","C","G"];
+  const baseColors = [0x25d9ff,0x54ff9b,0x9b6cff,0xffd45a];
+  const labelGroup = new THREE.Group();
+  baseChars.forEach((ch,idx)=>{
+    const canvas = document.createElement("canvas");
+    canvas.width = 128; canvas.height = 128;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0,0,128,128);
+    ctx.font = "bold 72px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#" + baseColors[idx].toString(16).padStart(6,"0");
+    ctx.shadowColor = ctx.fillStyle;
+    ctx.shadowBlur = 18;
+    ctx.fillText(ch,64,66);
+    const texture = new THREE.CanvasTexture(canvas);
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({map:texture,transparent:true,depthWrite:false})
+    );
+    const angle = idx * Math.PI/2;
+    sprite.position.set(Math.cos(angle)*2.25, (idx-1.5)*.8, Math.sin(angle)*2.25);
+    sprite.scale.set(.48,.48,1);
+    labelGroup.add(sprite);
+  });
+  dna.add(labelGroup);
+
+  // Orbit rings around the lower portion.
+  for(let i=0;i<5;i++){
+    const ring=new THREE.Mesh(
+      new THREE.TorusGeometry(1.45+i*.19,.018,8,96),
+      new THREE.MeshBasicMaterial({
+        color:i%2 ? 0x25bfff : 0x3d78ff,
+        transparent:true,
+        opacity:.34
+      })
+    );
+    ring.rotation.x=Math.PI/2;
+    ring.position.y=-2.93+i*.055;
+    dna.add(ring);
+  }
+
+  // Floating particles.
+  const particleCount=260;
+  const particlePositions=new Float32Array(particleCount*3);
+  for(let i=0;i<particleCount;i++){
+    particlePositions[i*3]=(Math.random()-.5)*6.5;
+    particlePositions[i*3+1]=(Math.random()-.5)*7.2;
+    particlePositions[i*3+2]=(Math.random()-.5)*3.5;
+  }
+  const particleGeometry=new THREE.BufferGeometry();
+  particleGeometry.setAttribute(
+    "position",new THREE.BufferAttribute(particlePositions,3)
+  );
+  const particles=new THREE.Points(
+    particleGeometry,
+    new THREE.PointsMaterial({
+      color:0x56dcff,
+      size:.035,
+      transparent:true,
+      opacity:.70,
+      depthWrite:false
+    })
+  );
+  scene.add(particles);
+
+  // Soft hologram aura made from transparent larger copies.
+  const auraA=new THREE.Mesh(
+    new THREE.TubeGeometry(curveA,160,.125,8,false),
+    new THREE.MeshBasicMaterial({color:0x25d9ff,transparent:true,opacity:.09,depthWrite:false})
+  );
+  const auraB=new THREE.Mesh(
+    new THREE.TubeGeometry(curveB,160,.125,8,false),
+    new THREE.MeshBasicMaterial({color:0x54ff9b,transparent:true,opacity:.08,depthWrite:false})
+  );
+  dna.add(auraA,auraB);
+
+  let dragging=false,lastX=0,lastY=0;
+  let targetX=0,targetY=0;
+  let zoom=9.7;
+
+  mount.addEventListener("pointerdown",e=>{
+    dragging=true;
+    lastX=e.clientX; lastY=e.clientY;
+    mount.setPointerCapture?.(e.pointerId);
+  });
+  mount.addEventListener("pointermove",e=>{
+    if(!dragging)return;
+    targetY+=(e.clientX-lastX)*.010;
+    targetX+=(e.clientY-lastY)*.006;
+    targetX=Math.max(-.9,Math.min(.9,targetX));
+    lastX=e.clientX; lastY=e.clientY;
+  });
+  mount.addEventListener("pointerup",()=>dragging=false);
+  mount.addEventListener("pointercancel",()=>dragging=false);
+
+  mount.addEventListener("wheel",e=>{
+    e.preventDefault();
+    zoom=Math.max(5.8,Math.min(12,zoom+e.deltaY*.008));
+  },{passive:false});
+
+  mount.addEventListener("dblclick",()=>{
+    targetX=0;
+    targetY=0;
+    zoom=9.7;
+  });
+
+  function resize(){
+    const w=mount.clientWidth;
+    const h=mount.clientHeight;
+    renderer.setSize(w,h,false);
+    camera.aspect=w/h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener("resize",resize);
+  resize();
+
+  function animate(){
+    requestAnimationFrame(animate);
+
+    if(!dragging) targetY+=.0028;
+
+    dna.rotation.x += (targetX-dna.rotation.x)*.06;
+    dna.rotation.y += (targetY-dna.rotation.y)*.06;
+    camera.position.z += (zoom-camera.position.z)*.08;
+
+    particles.rotation.y+=.0007;
+    particles.rotation.x+=.00015;
+
+    const pulse=1+Math.sin(Date.now()*.0024)*.018;
+    dna.scale.setScalar(pulse);
+
+    renderer.render(scene,camera);
+  }
+  animate();
+})();
+
+</script></body></html>
